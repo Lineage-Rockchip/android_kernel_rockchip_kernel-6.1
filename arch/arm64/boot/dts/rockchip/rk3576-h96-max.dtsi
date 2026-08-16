@@ -1,0 +1,387 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2024 Rockchip Electronics Co., Ltd.
+ *
+ * H96 Max M9 / M9S (RK3576 Android TV boxes).
+ *
+ * The two boards are electrically identical: their stock device trees
+ * differ only in the IR remote key tables, which the board dts files
+ * supply.  Everything else lives here.
+ *
+ * Derived from rk3576-evb1-v10.dts by diffing the stock device trees
+ * shipped in the H96 Max M9 and M9S firmware against rk3576-evb1-v10.dtb
+ * as built from this tree.  Stock keeps the EVB model/compatible strings,
+ * so they are left alone here -- the Rockchip Android HALs match on them.
+ */
+
+#include "rk3576.dtsi"
+#include "rk3576-evb1.dtsi"
+#include "rk3576-evb1-cam-dcphy0.dtsi"
+#include "rk3576-android.dtsi"
+
+/ {
+	model = "Rockchip RK3576 EVB1 V10 Board";
+	compatible = "rockchip,rk3576-evb1-v10", "rockchip,rk3576";
+
+	gpio_keys: gpio-keys {
+		compatible = "gpio-keys";
+		autorepeat;
+
+		power {
+			debounce-interval = <100>;
+			gpios = <&gpio0 RK_PD3 GPIO_ACTIVE_LOW>;
+			label = "GPIO Key Power";
+			linux,code = <KEY_POWER>;
+			wakeup-source;
+		};
+	};
+
+	/*
+	 * The board has no ES8388 populated.  Stock disables the real
+	 * es8388-sound card (see below) and exposes a dummy codec on SAI1
+	 * instead, while spoofing the card name so that the Rockchip audio
+	 * HAL still finds "rockchip,es8388".  Audio is routed out over HDMI
+	 * and SPDIF.
+	 */
+	ht5010_sound: ht5010-sound {
+		status = "okay";
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "rockchip,es8388";
+		simple-audio-card,format = "i2s";
+		simple-audio-card,mclk-fs = <256>;
+
+		simple-audio-card,cpu {
+			sound-dai = <&sai1>;
+		};
+
+		simple-audio-card,codec {
+			sound-dai = <&ht5010_sound_out>;
+		};
+	};
+
+	ht5010_sound_out: ht5010_sound-out {
+		status = "okay";
+		compatible = "rockchip,dummy-codec";
+		clocks = <&mclkout_sai1>;
+		clock-names = "mclk";
+		pinctrl-names = "default";
+		pinctrl-0 = <&sai1m0_mclk>;
+		#sound-dai-cells = <0>;
+	};
+
+	spdif_tx0_dc: spdif-tx0-dc {
+		status = "okay";
+		compatible = "linux,spdif-dit";
+		#sound-dai-cells = <0>;
+	};
+
+	spdif_tx0_sound: spdif-tx0-sound {
+		status = "okay";
+		compatible = "simple-audio-card";
+		simple-audio-card,mclk-fs = <128>;
+		simple-audio-card,name = "rockchip,spdif-tx1";
+
+		simple-audio-card,cpu {
+			sound-dai = <&spdif_tx1>;
+		};
+
+		simple-audio-card,codec {
+			sound-dai = <&spdif_tx0_dc>;
+		};
+	};
+};
+
+/*
+ * No USB Type-C on this board: the HUSB311 PD controller, its connector
+ * graph and the 5V Type-C VBUS regulator are all absent.  usb_drd0 is a
+ * plain host port (see &usb_drd0_dwc3 below) and the USBDP PHY is wired
+ * for DP only.
+ */
+/delete-node/ &usbc0;
+/delete-node/ &vbus5v0_typec;
+
+&backlight {
+	status = "disabled";
+};
+
+&dp {
+	status = "disabled";
+};
+
+&dp0 {
+	status = "disabled";
+};
+
+&dp0_in_vp2 {
+	status = "disabled";
+};
+
+&dp0_sound {
+	status = "disabled";
+};
+
+&dsi {
+	status = "disabled";
+};
+
+&dsi_in_vp1 {
+	status = "disabled";
+};
+
+&dsi_panel {
+	status = "disabled";
+};
+
+/* Real ES8388 card, replaced by ht5010-sound above. */
+&es8388 {
+	/delete-property/ assigned-clock-rates;
+	/delete-property/ assigned-clocks;
+	/delete-property/ clock-names;
+	/delete-property/ clocks;
+	/delete-property/ pinctrl-0;
+	/delete-property/ pinctrl-names;
+	status = "disabled";
+};
+
+&es8388_sound {
+	status = "disabled";
+};
+
+&gmac0 {
+	snps,reset-gpio = <&gpio2 RK_PB3 GPIO_ACTIVE_LOW>;
+	tx_delay = <0x1b>;
+};
+
+&gmac1 {
+	status = "disabled";
+};
+
+&gt1x {
+	/delete-property/ power-supply;
+	status = "disabled";
+};
+
+&hdmi {
+	cec-enable;
+};
+
+/* i2c0 only carried the EVB touch panel, i2c3 only the ES8388. */
+&i2c0 {
+	status = "disabled";
+};
+
+&i2c3 {
+	status = "disabled";
+};
+
+&leds {
+	/delete-node/ work;
+
+	work-green {
+		gpios = <&gpio0 RK_PD1 GPIO_ACTIVE_LOW>;
+		linux,default-trigger = "none";
+		default-state = "on";
+		retain-state-suspended;
+		retain-state-shutdown;
+	};
+
+	work-red {
+		gpios = <&gpio0 RK_PD0 GPIO_ACTIVE_LOW>;
+		linux,default-trigger = "none";
+		default-state = "off";
+		retain-state-suspended;
+		retain-state-shutdown;
+	};
+
+	/*
+	 * Not an LED: this is the WiFi module power enable, which stock
+	 * drives permanently on from here instead of from wireless-wlan
+	 * (see the deleted WIFI,poweren_gpio below).
+	 */
+	pwr-wifi {
+		gpios = <&gpio1 RK_PC6 GPIO_ACTIVE_HIGH>;
+		linux,default-trigger = "none";
+		default-state = "on";
+	};
+};
+
+&pcie0 {
+	status = "disabled";
+};
+
+&route_hdmi {
+	/delete-property/ logo,kernel;
+	logo,mode = "fullscreen";
+};
+
+&route_dsi {
+	status = "disabled";
+};
+
+&rockchip_suspend {
+	rockchip,sleep-mode-config = <
+		(0
+		| RKPM_SLP_ARMOFF_LOGOFF
+		)
+	>;
+	rockchip,wakeup-config = <
+		(0
+		| RKPM_GPIO_WKUP_EN
+		| RKPM_PWM_WKUP_EN	/* IR remote, see &pwm0_2ch_0 */
+		)
+	>;
+	rockchip,virtual-poweroff = <1>;
+	rockchip,virtual-poweroff-irqs = <132>;
+};
+
+&sdio {
+	/delete-property/ rockchip,use-v2-tuning;
+	post-power-on-delay-ms = <50>;
+	supports-sdio;
+	status = "okay";
+};
+
+&sdio_pwrseq {
+	reset-gpios = <&gpio0 RK_PD2 GPIO_ACTIVE_LOW>;
+	status = "okay";
+};
+
+&sdmmc {
+	supports-sd;
+};
+
+/*
+ * SPDIF is on spdif_tx1 (coax/optical out), not on the EVB's spdif_tx3.
+ *
+ * The pinmux override is load-bearing and was missing.  rk3576.dtsi defaults
+ * spdif_tx1 to spdifm0_tx1, whose pin is gpio3-13 -- which this board's
+ * ethernet already owns -- so the controller never probes:
+ *
+ *   rockchip-pinctrl: pin gpio3-13 already requested by 2a220000.ethernet;
+ *                     cannot claim for 2a680000.spdif-tx
+ *   rockchip-spdif 2a680000.spdif-tx: Error applying setting, reverse things back
+ *   platform spdif-tx0-sound: deferred probe pending
+ *
+ * and the "rockchipspdiftx" ALSA card never appears.  Stock's dtb uses
+ * spdifm1_tx1 here.  Found by resolving the pinctrl-0 phandles in both dtbs,
+ * not by reading either device tree source -- the phandle numbers differ
+ * between builds, so the node has to be looked up to compare.
+ */
+&spdif_tx1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&spdifm1_tx1>;
+	status = "okay";
+};
+
+&spdif_tx3 {
+	status = "disabled";
+};
+
+&threshold {
+	temperature = <80000>;
+};
+
+&target {
+	temperature = <100000>;
+};
+
+&u2phy0_otg {
+	/delete-property/ rockchip,typec-vbus-det;
+};
+
+&ufs {
+	status = "disabled";
+};
+
+&usbdp_phy {
+	/delete-property/ orientation-switch;
+	/delete-property/ sbu1-dc-gpios;
+	/delete-property/ sbu2-dc-gpios;
+	/delete-property/ svid;
+	rockchip,dp-lane-mux = <2 3>;
+
+	/delete-node/ port;
+};
+
+&usb_drd0_dwc3 {
+	/delete-property/ usb-role-switch;
+	dr_mode = "host";
+	extcon = <&u2phy0>;
+
+	/delete-node/ port;
+};
+
+&vcca_1v8_s0 {
+	regulator-state-mem {
+		/delete-property/ regulator-off-in-suspend;
+		regulator-on-in-suspend;
+	};
+};
+
+&vop {
+	/delete-property/ vop-supply;
+};
+
+&wireless_wlan {
+	/* moved to the pwr-wifi "LED", see &leds above */
+	/delete-property/ WIFI,poweren_gpio;
+};
+/*
+ * Both boards use a Rockchip remote decoder with several usercodes
+ * programmed in.  ir_key3 comes from rk3576-evb-input-keymap.dtsi
+ * unchanged; ir_key4 and ir_key5 are added here because both boards ship
+ * them identically.  The tables that actually differ between the M9 and
+ * the M9S live in the board dts files.
+ */
+&pwm0_2ch_0 {
+	ir_key4 {
+		rockchip,usercode = <0x7f80>;
+		rockchip,key_table =
+			<0xec	KEY_REPLY>,
+			<0xd8	KEY_BACK>,
+			<0xc7	KEY_UP>,
+			<0xbf	KEY_DOWN>,
+			<0xc8	KEY_LEFT>,
+			<0xc6	KEY_RIGHT>,
+			<0x8c	KEY_HOME>,
+			<0x78	KEY_VOLUMEUP>,
+			<0x76	KEY_VOLUMEDOWN>,
+			<0x7e	KEY_POWER>,
+			<0x7c	KEY_MENU>,
+			<0xb7	KEY_TEXT>;
+	};
+
+	ir_key5 {
+		rockchip,usercode = <0xfe01>;
+		rockchip,key_table =
+			<0xec	KEY_REPLY>,
+			<0xe6	KEY_BACK>,
+			<0xe9	KEY_UP>,
+			<0xe5	KEY_DOWN>,
+			<0xae	KEY_LEFT>,
+			<0xaf	KEY_RIGHT>,
+			<0xee	KEY_HOME>,
+			<0xe7	KEY_VOLUMEUP>,
+			<0xef	KEY_VOLUMEDOWN>,
+			<0xbf	KEY_POWER>,
+			<0xbe	KEY_MUTE>,
+			<0xb3	KEY_MENU>,
+			<0xff	KEY_TEXT>,
+			<0xb1	KEY_1>,
+			<0xf2	KEY_2>,
+			<0xf3	KEY_3>,
+			<0xb5	KEY_4>,
+			<0xf6	KEY_5>,
+			<0xf7	KEY_6>,
+			<0xb9	KEY_7>,
+			<0xfa	KEY_8>,
+			<0xfb	KEY_9>,
+			<0xfe	KEY_0>,
+			<0xbd	KEY_BACKSPACE>,
+			<0xbc	KEY_F13>,
+			<0xf0	KEY_F16>,
+			<0xb4	KEY_PREVIOUS>,
+			<0xb8	KEY_A>,
+			<0xb0	KEY_NEXT>;
+	};
+};
