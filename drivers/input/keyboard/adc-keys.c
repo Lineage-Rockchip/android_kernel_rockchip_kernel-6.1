@@ -29,7 +29,15 @@ struct adc_keys_state {
 	const struct adc_keys_button *map;
 };
 
+/*
+ * Khadas board test mode, owned by drivers/misc/khadas-mcu.c.  See the same
+ * guard in drivers/input/misc/rk805-pwrkey.c.
+ */
+#if IS_BUILTIN(CONFIG_KHADAS_MCU)
 extern int key_test_flag;
+#else
+static const int key_test_flag;
+#endif
 
 static void adc_keys_poll(struct input_dev *input)
 {

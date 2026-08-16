@@ -69,8 +69,24 @@ static void pwm_backlight_power_on(struct pwm_bl_data *pb)
 	pb->enabled = true;
 }
 
+/*
+ * The Khadas ebook boards let the backlight driver put their touch controller
+ * to sleep along with the panel.  Neither driver is built on every board -- an
+ * RK3576 TV box has neither -- so stub the hooks out when they are not built
+ * in, rather than failing the vmlinux link on an undefined symbol.
+ */
+#if IS_BUILTIN(CONFIG_TOUCHSCREEN_EDT_FT5X06)
 extern void tp_into_suspend(void);
+#else
+static inline void tp_into_suspend(void) { }
+#endif
+
+#if IS_BUILTIN(CONFIG_TOUCHSCREEN_GT9XX)
 extern void tp101_into_suspend(void);
+#else
+static inline void tp101_into_suspend(void) { }
+#endif
+
 static void pwm_backlight_power_off(struct pwm_bl_data *pb)
 {
 	struct pwm_state state;

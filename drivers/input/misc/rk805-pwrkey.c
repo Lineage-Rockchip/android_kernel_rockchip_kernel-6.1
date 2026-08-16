@@ -16,7 +16,16 @@
 #include <linux/of.h>
 #include <linux/platform_device.h>
 
+/*
+ * Khadas board test mode, owned by drivers/misc/khadas-mcu.c.  Boards without
+ * that MCU never enter it, and referencing the symbol unconditionally breaks
+ * the vmlinux link there.
+ */
+#if IS_BUILTIN(CONFIG_KHADAS_MCU)
 extern int key_test_flag;
+#else
+static const int key_test_flag;
+#endif
 
 static irqreturn_t pwrkey_fall_irq(int irq, void *_pwr)
 {
