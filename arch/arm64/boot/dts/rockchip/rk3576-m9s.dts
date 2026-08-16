@@ -1,0 +1,106 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2024 Rockchip Electronics Co., Ltd.
+ *
+ * H96 Max M9S (RK3576 Android TV box).
+ *
+ * The board itself is described by rk3576-h96-max.dtsi, which the M9 shares.
+ * All that is left here is the remote: the M9S ships a different handset, so
+ * it retables ir_key1 and ir_key2 and adds its own ir_key6.
+ */
+
+/dts-v1/;
+
+#include "rk3576-h96-max.dtsi"
+
+&pwm0_2ch_0 {
+	ir_key1 {
+		rockchip,usercode = <0xfeaa>;
+		rockchip,key_table =
+			<0xec	KEY_REPLY>,
+			<0xe6	KEY_BACK>,
+			<0xe9	KEY_UP>,
+			<0xe5	KEY_DOWN>,
+			<0xae	KEY_LEFT>,
+			<0xaf	KEY_RIGHT>,
+			<0xee	KEY_HOME>,
+			<0xe7	KEY_VOLUMEUP>,
+			<0xef	KEY_VOLUMEDOWN>,
+			<0xbf	KEY_POWER>,
+			<0xbe	KEY_MUTE>,
+			<0xb3	KEY_MENU>,
+			<0xff	KEY_TEXT>,
+			<0xb1	KEY_RED>,
+			<0xf2	KEY_GREEN>,
+			<0xf3	KEY_3>,
+			<0xb5	KEY_4>,
+			<0xf6	KEY_5>,
+			<0xf7	KEY_6>,
+			<0xb9	KEY_YELLOW>,
+			<0xfa	KEY_BLUE>,
+			<0xfb	KEY_9>,
+			<0xfe	KEY_0>,
+			<0xbd	KEY_BACKSPACE>,
+			<0xbc	KEY_F13>,
+			<0xf0	KEY_F16>,
+			<0xb4	KEY_PREVIOUS>,
+			<0xb8	KEY_A>,
+			<0xb0	KEY_NEXT>;
+	};
+
+	ir_key2 {
+		rockchip,usercode = <0xff00>;
+		rockchip,key_table =
+			<0xf1	KEY_LEFT>,
+			<0xe5	KEY_RIGHT>,
+			<0xfc	KEY_UP>,
+			<0xfd	KEY_DOWN>,
+			<0xf8	KEY_REPLY>,
+			<0xf9	KEY_F15>;
+	};
+
+	ir_key6 {
+		rockchip,usercode = <0xfb04>;
+		rockchip,key_table =
+			<0xf7	KEY_POWER>,
+			<0xd0	KEY_TEXT>,
+			<0xb5	KEY_MENU>,
+			<0x5b	KEY_F14>,
+			<0x4d	KEY_F13>,
+			<0xba	KEY_UP>,
+			<0xb9	KEY_DOWN>,
+			<0xb8	KEY_LEFT>,
+			<0xb7	KEY_RIGHT>,
+			<0xbb	KEY_REPLY>,
+			<0xe5	KEY_BACK>,
+			<0xe4	KEY_BACKSPACE>,
+			<0xd2	KEY_HOME>,
+			<0xfd	KEY_VOLUMEUP>,
+			<0xfc	KEY_VOLUMEDOWN>,
+			<0xf6	KEY_MUTE>,
+			<0xff	KEY_CHANNELUP>,
+			<0xfe	KEY_CHANNELDOWN>,
+			<0x04	KEY_F6>,
+			<0x14	KEY_F7>,
+			<0x4c	KEY_F8>,
+			<0x4b	KEY_F9>;
+	};
+};
+
+/*
+ * LineageOS deviation from stock.
+ *
+ * Stock declares both dwc3 controllers host-only, so Linux never registers a
+ * UDC, sys.usb.controller is never set, and recovery cannot bring up adb or
+ * fastbootd over USB.  U-Boot's own rk3576.dtsi already says "otg" for this
+ * controller, which is why fastboot works from the bootloader on the same
+ * port -- only the kernel device tree disagreed.  usb_drd0_dwc3 already
+ * carries extcon = <&u2phy0>, and that phy's otg-port has otg-id, otg-bvalid
+ * and linestate interrupts, i.e. everything role detection needs.
+ *
+ * This replaces the binary patch in
+ * device/rockchip/rk3576-common/tools/patch-dtb-dr-mode.py.
+ */
+&usb_drd0_dwc3 {
+	dr_mode = "otg";
+};

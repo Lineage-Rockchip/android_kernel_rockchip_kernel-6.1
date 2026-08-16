@@ -1,0 +1,44 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2024 Rockchip Electronics Co., Ltd.
+ *
+ * H96 Max M9 (RK3576 Android TV box).
+ *
+ * The board itself is described by rk3576-h96-max.dtsi, which the M9S shares.
+ * All that is left here is the remote.  Unlike the M9S, the M9 keeps the EVB
+ * ir_key1 table as-is and only retables ir_key2 and ir_key6.
+ */
+
+/dts-v1/;
+
+#include "rk3576-h96-max.dtsi"
+
+&pwm0_2ch_0 {
+	ir_key2 {
+		rockchip,usercode = <0xff00>;
+		rockchip,key_table =
+			<0xf1	KEY_LEFT>,
+			<0xe5	KEY_RIGHT>,
+			<0xfc	KEY_UP>,
+			<0xfd	KEY_DOWN>,
+			<0xf8	KEY_REPLY>,
+			<0xf9	KEY_F14>;
+	};
+
+	ir_key6 {
+		rockchip,usercode = <0xfd01>;
+		rockchip,key_table =
+			<0x31	KEY_REPLY>,
+			<0x2f	KEY_BACK>,
+			<0x35	KEY_UP>,
+			<0x2d	KEY_DOWN>,
+			<0x66	KEY_LEFT>,
+			<0x3e	KEY_RIGHT>,
+			<0x6a	KEY_HOME>,
+			<0x5e	KEY_VOLUMEUP>,
+			<0x47	KEY_VOLUMEDOWN>,
+			<0x23	KEY_POWER>,
+			<0x3a	KEY_TEXT>,
+			<0x0d	KEY_F6>;
+	};
+};
