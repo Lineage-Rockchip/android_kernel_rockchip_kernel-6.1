@@ -6,7 +6,6 @@
 #include <linux/bcd.h>
 #include <linux/rtc.h>
 #include <linux/delay.h>
-#include <linux/wakelock.h>
 #include <linux/slab.h>
 #include <linux/of_gpio.h>
 #include <linux/irqdomain.h>
@@ -121,7 +120,6 @@ struct hym8563 {
 	struct mutex mutex;
 	struct rtc_device	*rtc;
 	struct rtc_wkalrm alarm;
-	struct wake_lock wake_lock;
 #ifdef CONFIG_COMMON_CLK
 	struct clk_hw		clkout_hw;
 #endif
@@ -831,7 +829,6 @@ static int hym8563_probe(struct i2c_client *client,
 	gClient = client;
 	hym8563->client = client;
 	mutex_init(&hym8563->mutex);
-	wake_lock_init(&hym8563->wake_lock, WAKE_LOCK_SUSPEND, "rtc_hym8563");
 	i2c_set_clientdata(client, hym8563);
 
 	hym8563_init_device(client);
