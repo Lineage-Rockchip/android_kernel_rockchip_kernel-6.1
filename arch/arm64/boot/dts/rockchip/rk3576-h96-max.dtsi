@@ -165,6 +165,11 @@
 	cec-enable;
 };
 
+/* The EVB's RTC is not fitted. */
+&hym8563 {
+	status = "disabled";
+};
+
 /* i2c0 only carried the EVB touch panel, i2c3 only the ES8388. */
 &i2c0 {
 	status = "disabled";
