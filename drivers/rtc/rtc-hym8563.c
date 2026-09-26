@@ -826,7 +826,6 @@ static int hym8563_probe(struct i2c_client *client,
 	if (!hym8563)
 		return -ENOMEM;
 
-	gClient = client;
 	hym8563->client = client;
 	mutex_init(&hym8563->mutex);
 	i2c_set_clientdata(client, hym8563);
@@ -863,10 +862,13 @@ static int hym8563_probe(struct i2c_client *client,
 	    (tm_read.tm_mon == -1) || (rtc_valid_tm(&tm_read) != 0))
 		hym8563_rtc_set_time(&client->dev, &tm);
 
+	gClient = client;
 	hym8563->rtc = devm_rtc_device_register(&client->dev, client->name,
 						&hym8563_rtc_ops, THIS_MODULE);
-	if (IS_ERR(hym8563->rtc))
+	if (IS_ERR(hym8563->rtc)) {
+		gClient = NULL;
 		return PTR_ERR(hym8563->rtc);
+	}
 
 	/* the hym8563 alarm only supports a minute accuracy */
 	hym8563->rtc->uie_unsupported = 1;
