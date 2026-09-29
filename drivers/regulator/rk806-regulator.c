@@ -1246,24 +1246,39 @@ static int __maybe_unused rk806_resume(struct device *dev)
 }
 SIMPLE_DEV_PM_OPS(rk806_pm_ops, rk806_suspend, rk806_resume);
 
+static bool rk806_virtual_poweroff(void)
+{
+	struct device_node *np;
+	u32 enable = 0;
+
+	np = of_find_compatible_node(NULL, NULL, "rockchip,pm-config");
+	if (np && of_device_is_available(np))
+		of_property_read_u32(np, "rockchip,virtual-poweroff", &enable);
+	of_node_put(np);
+
+	return enable;
+}
+
 static void rk806_regulator_shutdown(struct platform_device *pdev)
 {
 	struct rk806 *rk806 = dev_get_drvdata(pdev->dev.parent);
+	int fun;
 
 	if (system_state == SYSTEM_POWER_OFF) {
+		fun = rk806_virtual_poweroff() ? PWRCTRL_SLP_FUN : PWRCTRL_POWOFF_FUN;
 		rk806_shutdown_requence_config(rk806);
 		if (rk806->pdata->shutown_by_pwrctrln == 2) {
 			rk806_field_write(rk806, PWRCTRL2_FUN, PWRCTRL_NULL_FUN);
 			rk806_field_write(rk806, PWRCTRL2_POL, POL_HIGH);
-			rk806_field_write(rk806, PWRCTRL2_FUN, PWRCTRL_POWOFF_FUN);
+			rk806_field_write(rk806, PWRCTRL2_FUN, fun);
 		} else if (rk806->pdata->shutown_by_pwrctrln == 3) {
 			rk806_field_write(rk806, PWRCTRL3_FUN, PWRCTRL_NULL_FUN);
 			rk806_field_write(rk806, PWRCTRL3_POL, POL_HIGH);
-			rk806_field_write(rk806, PWRCTRL3_FUN, PWRCTRL_POWOFF_FUN);
+			rk806_field_write(rk806, PWRCTRL3_FUN, fun);
 		} else {
 			rk806_field_write(rk806, PWRCTRL1_FUN, PWRCTRL_NULL_FUN);
 			rk806_field_write(rk806, PWRCTRL1_POL, POL_HIGH);
-			rk806_field_write(rk806, PWRCTRL1_FUN, PWRCTRL_POWOFF_FUN);
+			rk806_field_write(rk806, PWRCTRL1_FUN, fun);
 		}
 	}
 }
