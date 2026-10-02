@@ -597,7 +597,6 @@
 &rknpu {
 	rknpu-supply = <&vdd_npu_s0>;
 	mem-supply = <&vdd_npu_mem_s0>;
-	rockchip,sram = <&rknpu_sram>;
 	status = "okay";
 };
 
@@ -1343,19 +1342,3 @@
 	status = "okay";
 };
 
-&rkvdec0 {
-	/delete-property/ rockchip,sram;
-};
-
-&rkvdec1 {
-	/delete-property/ rockchip,sram;
-};
-
-&syssram {
-	/delete-node/ rkvdec-sram@0;
-	/delete-node/ rkvdec-sram@78000;
-
-	rknpu_sram: rknpu-sram@0 {
-		reg = <0x0 0xef000>;
-	};
-};
