@@ -13,6 +13,7 @@ config NET_VENDOR_MOTORCOMM
 if NET_VENDOR_MOTORCOMM
 
 config FUXI
-	tristate "motorcomm fuxi Ethernet support"
+	tristate "Motorcomm YT6801 PCIe Ethernet support"
+	depends on PCI
 
 endif #NET_VENDOR_MOTORCOMM

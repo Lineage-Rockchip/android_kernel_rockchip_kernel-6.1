@@ -1040,12 +1040,13 @@ static int fxgmac_disable_pci_msi_config(struct pci_dev *pdev)
     int ret = 0;
 
     pcie_cap_offset = pci_find_capability(pdev, PCI_CAP_ID_MSI);
-    if (pcie_cap_offset) {
-        ret = pci_read_config_dword(pdev, pcie_cap_offset, &pcie_msi_mask_bits);
-        if (ret) {
-            printk(KERN_ERR "read pci config space MSI cap. failed, %d\n", ret);
-            ret = -EFAULT;
-        }
+    if (!pcie_cap_offset)
+        return 0;
+
+    ret = pci_read_config_dword(pdev, pcie_cap_offset, &pcie_msi_mask_bits);
+    if (ret) {
+        printk(KERN_ERR "read pci config space MSI cap. failed, %d\n", ret);
+        return -EFAULT;
     }
 
     pcie_msi_mask_bits = FXGMAC_SET_REG_BITS(pcie_msi_mask_bits,
@@ -1068,12 +1069,13 @@ static int fxgmac_disable_pci_msix_config(struct pci_dev *pdev)
     int ret = 0;
 
     pcie_cap_offset = pci_find_capability(pdev, PCI_CAP_ID_MSIX);
-    if (pcie_cap_offset) {
-        ret = pci_read_config_dword(pdev, pcie_cap_offset, &pcie_msi_mask_bits);
-        if (ret) {
-            printk(KERN_ERR "read pci config space MSIX cap. failed, %d\n", ret);
-            ret = -EFAULT;
-        }
+    if (!pcie_cap_offset)
+        return 0;
+
+    ret = pci_read_config_dword(pdev, pcie_cap_offset, &pcie_msi_mask_bits);
+    if (ret) {
+        printk(KERN_ERR "read pci config space MSIX cap. failed, %d\n", ret);
+        return -EFAULT;
     }
 
     pcie_msi_mask_bits = FXGMAC_SET_REG_BITS(pcie_msi_mask_bits,
