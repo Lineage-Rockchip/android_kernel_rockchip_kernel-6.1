@@ -1,0 +1,351 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2021 Rockchip Electronics Co., Ltd.
+ * Copyright (c) 2026 The LineageOS Project
+ *
+ * H96 Max V58. The vendor built it from rk3588-nvr-demo-v10-android.dts;
+ * this is that board plus the delta recovered from the stock dtb.
+ */
+
+/dts-v1/;
+
+#include "rk3588-nvr-demo.dtsi"
+#include "rk3588-android.dtsi"
+
+/ {
+	model = "Rockchip RK3588 NVR DEMO LP4 V10 Android Board";
+	compatible = "rockchip,rk3588-nvr-demo-v10-android", "rockchip,rk3588";
+
+	spdif_tx0_dc: spdif-tx0-dc {
+		status = "okay";
+		compatible = "linux,spdif-dit";
+		#sound-dai-cells = <0>;
+	};
+
+	spdif_tx0_sound: spdif-tx0-sound {
+		status = "okay";
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "rockchip,spdif-tx0";
+		simple-audio-card,mclk-fs = <128>;
+		simple-audio-card,cpu {
+			sound-dai = <&spdif_tx0>;
+		};
+		simple-audio-card,codec {
+			sound-dai = <&spdif_tx0_dc>;
+		};
+	};
+
+	wireless_bluetooth: wireless-bluetooth {
+		compatible = "bluetooth-platdata";
+		clocks = <&hym8563>;
+		clock-names = "ext_clock";
+		uart_rts_gpios = <&gpio4 RK_PC4 GPIO_ACTIVE_LOW>;
+		pinctrl-names = "default", "rts_gpio";
+		pinctrl-0 = <&uart9m0_rtsn>, <&bt_reset_gpio>, <&bt_wake_gpio>, <&bt_irq_gpio>;
+		pinctrl-1 = <&uart9_gpios>;
+		BT,reset_gpio    = <&gpio0 RK_PC6 GPIO_ACTIVE_HIGH>;
+		BT,wake_gpio     = <&gpio0 RK_PC5 GPIO_ACTIVE_HIGH>;
+		BT,wake_host_irq = <&gpio0 RK_PA0 GPIO_ACTIVE_HIGH>;
+		status = "okay";
+	};
+
+	wireless_wlan: wireless-wlan {
+		compatible = "wlan-platdata";
+		wifi_chip_type = "ap6275p";
+		pinctrl-names = "default";
+		pinctrl-0 = <&wifi_host_wake_irq>, <&wifi_poweren_gpio>;
+		WIFI,host_wake_irq = <&gpio0 RK_PB2 GPIO_ACTIVE_HIGH>;
+		WIFI,poweren_gpio = <&gpio0 RK_PC4 GPIO_ACTIVE_HIGH>;
+		status = "okay";
+	};
+};
+
+&avsd {
+	status = "okay";
+};
+
+&dp0 {
+	status = "disabled";
+};
+
+&dp1 {
+	status = "disabled";
+};
+
+&dp1_in_vp0 {
+	status = "disabled";
+};
+
+&dp1_in_vp1 {
+	status = "disabled";
+};
+
+&dp1_sound {
+	status = "disabled";
+};
+
+&gmac0 {
+	status = "disabled";
+};
+
+&gmac1 {
+	snps,reset-gpio = <&gpio3 RK_PB7 GPIO_ACTIVE_LOW>;
+};
+
+&hdmi0_in_vp1 {
+	status = "disabled";
+};
+
+&hdmi0_in_vp2 {
+	status = "disabled";
+};
+
+&hdmi1 {
+	status = "disabled";
+};
+
+&hdmi1_in_vp0 {
+	status = "disabled";
+};
+
+&hdmi1_in_vp2 {
+	status = "disabled";
+};
+
+&hdmi1_sound {
+	status = "disabled";
+};
+
+&hdptxphy_hdmi1 {
+	status = "disabled";
+};
+
+&hym8563 {
+	#clock-cells = <0>;
+	clock-frequency = <32768>;
+	clock-output-names = "hym8563";
+	interrupts = <RK_PD3 IRQ_TYPE_LEVEL_LOW>;
+};
+
+&i2c5 {
+	status = "disabled";
+};
+
+&i2s6_8ch {
+	status = "disabled";
+};
+
+&pcie2x1l0 {
+	reset-gpios = <&gpio4 RK_PA5 GPIO_ACTIVE_HIGH>;
+	rockchip,skip-scan-in-resume;
+	status = "okay";
+};
+
+&pcie30phy {
+	status = "disabled";
+};
+
+&pcie3x4 {
+	status = "disabled";
+};
+
+&pwm3 {
+	/delete-node/ ir_key1;
+
+	ir_key1 {
+		rockchip,usercode = <0x4040>;
+		rockchip,key_table =
+			<0xf2	KEY_REPLY>,
+			<0xbd	KEY_BACK>,
+			<0xf4	KEY_UP>,
+			<0xf1	KEY_DOWN>,
+			<0xef	KEY_LEFT>,
+			<0xee	KEY_RIGHT>,
+			<0xe5	KEY_HOME>,
+			<0xe7	KEY_VOLUMEUP>,
+			<0xe8	KEY_VOLUMEDOWN>,
+			<0xb2	KEY_POWER>,
+			<0xbc	KEY_MUTE>,
+			<0xec	KEY_MENU>,
+			<0xbf	KEY_YELLOW>,
+			<0xe0	KEY_BLUE>,
+			<0xe1	KEY_CHANNELUP>,
+			<0xe9	KEY_F13>,
+			<0xe6	KEY_MICMUTE>,
+			<0xe8	KEY_F15>,
+			<0xe7	KEY_F16>,
+			<0xf0	KEY_TEXT>,
+			<0xbe	KEY_MODE>;
+	};
+
+	ir_key4 {
+		rockchip,usercode = <0xfe01>;
+		rockchip,key_table =
+			<0xec	KEY_REPLY>,
+			<0xe6	KEY_BACK>,
+			<0xe9	KEY_UP>,
+			<0xe5	KEY_DOWN>,
+			<0xae	KEY_LEFT>,
+			<0xaf	KEY_RIGHT>,
+			<0xee	KEY_HOME>,
+			<0xe7	KEY_VOLUMEUP>,
+			<0xef	KEY_VOLUMEDOWN>,
+			<0xbf	KEY_POWER>,
+			<0xbe	KEY_MUTE>,
+			<0xb3	KEY_MENU>,
+			<0xff	KEY_TEXT>,
+			<0xb1	KEY_1>,
+			<0xf2	KEY_2>,
+			<0xf3	KEY_3>,
+			<0xb5	KEY_4>,
+			<0xf6	KEY_5>,
+			<0xf7	KEY_6>,
+			<0xb9	KEY_7>,
+			<0xfa	KEY_8>,
+			<0xfb	KEY_9>,
+			<0xfe	KEY_0>,
+			<0x0e	KEY_PAGEUP>,
+			<0x0d	KEY_PAGEDOWN>,
+			<0xa5	KEY_PLAYPAUSE>,
+			<0xbd	KEY_BACKSPACE>,
+			<0xbc	KEY_F13>,
+			<0xf0	KEY_F16>,
+			<0xb4	KEY_PREVIOUS>,
+			<0xb8	KEY_A>,
+			<0xb0	KEY_NEXT>;
+	};
+
+	ir_key5 {
+		rockchip,usercode = <0x7f80>;
+		rockchip,key_table =
+			<0xec	KEY_REPLY>,
+			<0xd8	KEY_BACK>,
+			<0xc7	KEY_UP>,
+			<0xbf	KEY_DOWN>,
+			<0xc8	KEY_LEFT>,
+			<0xc6	KEY_RIGHT>,
+			<0x8c	KEY_HOME>,
+			<0x78	KEY_VOLUMEUP>,
+			<0x76	KEY_VOLUMEDOWN>,
+			<0x7e	KEY_POWER>,
+			<0x7c	KEY_MENU>,
+			<0xb7	KEY_TEXT>;
+	};
+
+	ir_key6 {
+		rockchip,usercode = <0xfd01>;
+		rockchip,key_table =
+			<0x31	KEY_REPLY>,
+			<0x2f	KEY_BACK>,
+			<0x35	KEY_UP>,
+			<0x2d	KEY_DOWN>,
+			<0x66	KEY_LEFT>,
+			<0x3e	KEY_RIGHT>,
+			<0x6a	KEY_HOME>,
+			<0x5e	KEY_VOLUMEUP>,
+			<0x47	KEY_VOLUMEDOWN>,
+			<0x23	KEY_POWER>,
+			<0x3a	KEY_TEXT>,
+			<0x0d	KEY_F6>;
+	};
+};
+
+&route_dp0 {
+	status = "okay";
+	connect = <&vp2_out_dp0>;
+	/delete-property/ force-output;
+	/delete-node/ force_timing;
+};
+
+&route_dp1 {
+	status = "disabled";
+};
+
+&route_hdmi0 {
+	status = "okay";
+	logo,mode = "fullscreen";
+	connect = <&vp0_out_hdmi0>;
+	/delete-property/ force-output;
+	/delete-node/ force_timing;
+};
+
+&route_hdmi1 {
+	status = "disabled";
+};
+
+&sata0 {
+	status = "disabled";
+};
+
+&sata1 {
+	status = "disabled";
+};
+
+&spdif_tx0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&spdif0m1_tx>;
+	status = "okay";
+};
+
+&spdif_tx5 {
+	status = "disabled";
+};
+
+&uart9 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&uart9m0_xfer &uart9m0_ctsn>;
+	status = "okay";
+};
+
+&usbdrd_dwc3_0 {
+	dr_mode = "host";
+	extcon = <&u2phy0>;
+	status = "okay";
+};
+
+&work_led {
+	gpios = <&gpio3 RK_PD4 GPIO_ACTIVE_HIGH>;
+	default-state = "on";
+	/delete-property/ linux,default-trigger;
+};
+
+&clk32k_out1 {
+	rockchip,pins = <2 RK_PC5 1 &pcfg_pull_up>;
+};
+
+&rtc_int {
+	rockchip,pins = <0 RK_PD3 RK_FUNC_GPIO &pcfg_pull_up>;
+};
+
+&pinctrl {
+	pinctrl-names = "default";
+	pinctrl-0 = <&clk32k_out1>;
+
+	wireless-bluetooth {
+		uart9_gpios: uart9-gpios {
+			rockchip,pins = <4 RK_PC4 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+
+		bt_reset_gpio: bt-reset-gpio {
+			rockchip,pins = <0 RK_PC6 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+
+		bt_wake_gpio: bt-wake-gpio {
+			rockchip,pins = <0 RK_PC5 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+
+		bt_irq_gpio: bt-irq-gpio {
+			rockchip,pins = <0 RK_PA0 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+	};
+
+	wireless-wlan {
+		wifi_host_wake_irq: wifi-host-wake-irq {
+			rockchip,pins = <0 RK_PB2 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+
+		wifi_poweren_gpio: wifi-poweren-gpio {
+			rockchip,pins = <0 RK_PC4 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+	};
+};

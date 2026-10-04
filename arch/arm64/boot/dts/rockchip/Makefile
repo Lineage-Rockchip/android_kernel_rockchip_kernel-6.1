@@ -484,6 +484,7 @@ dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3566-odroid-m1s-android.dtb
 dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588s-odroid-m2.dtb
 dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588s-odroid-m2-android.dtb
 dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588s-orangepi-5-pro.dtb
+dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-h96-max-v58.dtb
 
 subdir-$(CONFIG_ARCH_ROCKCHIP_ODROIDM1) += overlays/odroidm1
 subdir-$(CONFIG_ARCH_ROCKCHIP_ODROIDM1) += overlays/odroidm1s
