@@ -5,5 +5,6 @@ dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3576-ebook-v10.dtb
 dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3576-khadas-edge-2l-ebook.dtb
 dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3576-m9.dtb
 dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3576-m9s.dtb
+dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-h96-max-v58.dtb
 dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-orangepi-5-max.dtb
 dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588s-orangepi-5-pro.dtb
