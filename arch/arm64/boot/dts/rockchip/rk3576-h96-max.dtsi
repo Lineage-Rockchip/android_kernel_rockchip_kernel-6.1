@@ -207,6 +207,7 @@
 		gpios = <&gpio1 RK_PC6 GPIO_ACTIVE_HIGH>;
 		linux,default-trigger = "none";
 		default-state = "on";
+		retain-state-suspended;
 	};
 };
 
