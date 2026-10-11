@@ -13853,19 +13853,6 @@ static void vop2_wait_for_scan_timing_from_the_assigned_line(struct vop2_video_p
 			      wait_line, vcnt, ret);
 }
 
-static void vop2_wait_for_vblank_start(struct vop2_video_port *vp)
-{
-	struct drm_display_mode *mode = &vp->rockchip_crtc.crtc.state->adjusted_mode;
-	u32 vact_end = mode->crtc_vtotal - mode->crtc_vsync_start + mode->crtc_vdisplay;
-	u32 current_line = vop2_read_vcnt(vp);
-
-	if (current_line >= vact_end) {
-		vop2_wait_for_scan_timing_max_to_assigned_line(vp, current_line, vact_end);
-		current_line = vop2_read_vcnt(vp);
-	}
-	vop2_wait_for_scan_timing_from_the_assigned_line(vp, current_line, vact_end - 1);
-}
-
 static void vop2_crtc_atomic_flush(struct drm_crtc *crtc, struct drm_atomic_state *state)
 {
 	struct rockchip_crtc_state *vcstate = to_rockchip_crtc_state(crtc->state);
@@ -13930,8 +13917,6 @@ static void vop2_crtc_atomic_flush(struct drm_crtc *crtc, struct drm_atomic_stat
 
 		if (vcstate->mode_update)
 			VOP_CTRL_SET(vop2, dma_stop, 1);
-		if (vp->loader_protect)
-			vop2_wait_for_vblank_start(vp);
 		vop2_dump_mmu_status(vop2, vp, vp->loader_protect ? "pre-attach (logo)" : "pre-attach",
 				     false);
 		if (vop2->aclk_mode_rate[ROCKCHIP_VOP_ACLK_RESET_MODE] &&
