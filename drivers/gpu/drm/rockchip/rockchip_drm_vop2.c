@@ -48,6 +48,7 @@
 #include <linux/types.h>
 #include <soc/rockchip/rockchip_csu.h>
 #include <soc/rockchip/rockchip_dmc.h>
+#include <soc/rockchip/rockchip_iommu.h>
 #include <soc/rockchip/rockchip_opp_select.h>
 #include <soc/rockchip/rockchip_system_monitor.h>
 #include <soc/rockchip/rockchip-system-status.h>
@@ -1680,6 +1681,33 @@ static uint32_t vop2_read_vcnt(struct vop2_video_port *vp)
 	}
 
 	return vcnt1;
+}
+
+static void vop2_dump_mmu_status(struct vop2 *vop2, struct vop2_video_port *vp, const char *when,
+				 bool wait_idle)
+{
+	void __iomem *base;
+	u32 status;
+	ktime_t start;
+	s64 idle_us;
+	int i, ret;
+
+	if (vop2->version != VOP_VERSION_RK3576)
+		return;
+
+	for (i = 0; i < 2; i++) {
+		base = rockchip_get_iommu_base(vop2->dev, i);
+		start = ktime_get();
+		status = readl(base + 0x04);
+		ret = wait_idle ? readl_poll_timeout(base + 0x04, status, status & BIT(3), 10, 50 * 1000) :
+				  !(status & BIT(3));
+		idle_us = ktime_us_delta(ktime_get(), start);
+		DRM_DEV_INFO(vop2->dev,
+			     "mmu%d %s: vp%d vcnt %u aclk %lu status %#x rawstat %#x %s %lldus\n",
+			     i, when, vp->id, vop2_read_vcnt(vp), clk_get_rate(vop2->aclk),
+			     readl(base + 0x04), readl(base + 0x14),
+			     ret ? "never idle in" : "idle after", idle_us);
+	}
 }
 
 static void vop2_wait_for_irq_handler(struct drm_crtc *crtc)
@@ -5465,6 +5493,7 @@ static void vop2_disable(struct drm_crtc *crtc)
 		 * vop2 standby complete, so iommu detach is safe.
 		 */
 		VOP_CTRL_SET(vop2, dma_stop, 1);
+		vop2_dump_mmu_status(vop2, vp, "pre-detach", true);
 		if (vop2->aclk_mode_rate[ROCKCHIP_VOP_ACLK_RESET_MODE] &&
 		    clk_get_rate(vop2->aclk) > vop2->aclk_mode_rate[ROCKCHIP_VOP_ACLK_RESET_MODE])
 			vop2_set_aclk_rate(crtc, ROCKCHIP_VOP_ACLK_RESET_MODE, NULL);
@@ -13888,6 +13917,8 @@ static void vop2_crtc_atomic_flush(struct drm_crtc *crtc, struct drm_atomic_stat
 
 		if (vcstate->mode_update)
 			VOP_CTRL_SET(vop2, dma_stop, 1);
+		vop2_dump_mmu_status(vop2, vp, vp->loader_protect ? "pre-attach (logo)" : "pre-attach",
+				     false);
 		if (vop2->aclk_mode_rate[ROCKCHIP_VOP_ACLK_RESET_MODE] &&
 		    clk_get_rate(vop2->aclk) > vop2->aclk_mode_rate[ROCKCHIP_VOP_ACLK_RESET_MODE]) {
 			vop2_set_aclk_rate(crtc, ROCKCHIP_VOP_ACLK_RESET_MODE, NULL);
@@ -13896,6 +13927,8 @@ static void vop2_crtc_atomic_flush(struct drm_crtc *crtc, struct drm_atomic_stat
 		ret = rockchip_drm_dma_attach_device(vop2->drm_dev, vop2->dev);
 		if (enter_vop_aclk_reset_mode)
 			vop2_set_aclk_rate(crtc, aclk_mode, NULL);
+		vop2_dump_mmu_status(vop2, vp, enter_vop_aclk_reset_mode ?
+				     "post-attach (aclk switched)" : "post-attach", true);
 		if (ret) {
 			vop2->is_iommu_enabled = false;
 			vop2_disable_all_planes_for_crtc(crtc);
