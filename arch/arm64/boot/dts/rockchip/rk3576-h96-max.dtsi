@@ -236,6 +236,12 @@
 		| RKPM_PWM_WKUP_EN	/* IR remote, see &pwm0_2ch_0 */
 		)
 	>;
+	rockchip,sleep-pin-config = <
+		(0
+		| RKPM_SLEEP_PIN0_EN
+		)
+		(0)
+	>;
 	rockchip,virtual-poweroff = <1>;
 	rockchip,virtual-poweroff-irqs = <132>;
 };
