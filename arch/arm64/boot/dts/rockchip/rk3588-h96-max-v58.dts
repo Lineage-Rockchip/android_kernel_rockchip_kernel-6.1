@@ -116,6 +116,11 @@
 	status = "disabled";
 };
 
+/* The stock U-Boot only binds the HDMI half of the merged PHY by this. */
+&hdptxphy0 {
+	compatible = "rockchip,rk3588-hdptx-phy-hdmi", "rockchip,rk3588-hdptx-phy";
+};
+
 &hdptxphy1 {
 	status = "disabled";
 };
